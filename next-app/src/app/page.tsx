@@ -1,5 +1,5 @@
-import Image from 'next/image'
-import { Button } from 'antd'
+import Image from 'next/image';
+import { Button } from 'antd';
 
 export default function Page() {
   return (
