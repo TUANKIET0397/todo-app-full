@@ -7,10 +7,10 @@ export type UserDocument = HydratedDocument<User>;
 @Schema()
 export class User {
 @Prop()
-  name: string = "";
+  name: string;
 
   @Prop()
-  age: number = 0;
+  age: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

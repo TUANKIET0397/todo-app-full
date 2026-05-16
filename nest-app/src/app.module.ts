@@ -8,7 +8,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [UsersModule, 
-    ConfigModule.forRoot({ignoreEnvFile: true, isGlobal: true,}),
+  ConfigModule.forRoot({ isGlobal: true }),
   MongooseModule.forRootAsync({
   imports: [ConfigModule],
   useFactory: async (configService: ConfigService) => ({
@@ -20,5 +20,10 @@ import { MongooseModule } from '@nestjs/mongoose';
     
   controllers: [AppController],
   providers: [AppService],
-})
+  
+}
+
+)
+
+
 export class AppModule {}
