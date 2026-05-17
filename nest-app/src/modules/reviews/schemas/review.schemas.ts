@@ -1,4 +1,5 @@
 import { User } from "@/modules/users/schemas/user.schema"
+import { Restaurant } from "@/modules/restaurants/schemas/restaurant.schema"
 //import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 // nó đươc sử dụng để định nghĩa một schema cho một mô hình dữ liệu trong NestJS.
 import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
