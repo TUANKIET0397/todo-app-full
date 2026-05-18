@@ -5,7 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
 import { User, UserSchema } from './schemas/user.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
+  // Register the User model with Mongoose, có nghĩa là chúng ta sẽ sử dụng UserSchema để tạo ra một collection trong MongoDB có tên là 'users'
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+  ],
   controllers: [UsersController],
   providers: [UsersService],
 })
