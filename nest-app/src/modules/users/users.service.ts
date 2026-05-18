@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { hashPasswordHelper } from '@/helpers/utils';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class UsersService {
@@ -46,8 +47,33 @@ export class UsersService {
     };
   }
 
-  findAll() {
-    return `This action returns all users`;
+  // findAll sẽ nhận các query từ client, sau đó sẽ chuyển đổi các query này thành các điều kiện để truy vấn database,
+  // ví dụ như status=sent&timestamp>2016-01-01&author.firstName=/john/i&limit=100&skip=50&sort=-timestamp&populate=logs&fields=id,logs.ip
+  // sẽ được chuyển đổi thành các điều kiện để truy vấn database, sau đó sẽ trả về kết quả cho client.
+  //  Ở đây mình sẽ sử dụng thư viện api-query-params để chuyển đổi các query này thành các điều kiện để truy vấn database, sau đó sẽ trả về kết quả cho client.
+  async findAll(query: string, current: number, pageSize: number) {
+    const { filter, sort } = aqp(query);
+    if (filter.current) delete filter.current;
+    if (filter.pageSize) delete filter.pageSize;
+    if (!current) current = 1;
+    if (!pageSize) pageSize = 10;
+    //ngoài filter như thế này, thì cần biết bao nhiêu phần tử ở front end để có thể tính được skip,
+    // ví dụ như nếu pageSize là 10, thì skip sẽ là (current - 1) * pageSize,
+    //  tức là nếu current là 1 thì skip sẽ là 0, nếu current là 2 thì skip sẽ là 10, nếu current là 3 thì skip sẽ là 20,
+    // và cứ như vậy. Điều này giúp cho việc phân trang trở nên dễ dàng hơn và hiệu quả hơn khi truy vấn database.
+    // Nếu không có skip thì sẽ trả về tất cả các phần tử trong database
+    const totalItems = (await this.userModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const skip = (+current - 1) * +pageSize;
+
+    const results = await this.userModel
+      .find(filter) // filter là các điều kiện để truy vấn database, nó sẽ được chuyển đổi từ query của client, ví dụ như status=sent&timestamp>2016-01-01&author.firstName=/john/i sẽ được chuyển đổi thành các điều kiện để truy vấn database, sau đó sẽ trả về kết quả cho client.
+      .limit(pageSize) // giới hạn số lượng phần tử trả về, để tránh trả về quá nhiều phần tử trong một lần truy vấn, điều này giúp cho việc phân trang trở nên hiệu quả hơn khi truy vấn database. Nếu không có limit thì sẽ trả về tất cả các phần tử trong database
+      .skip(skip) // skip là số phần tử cần bỏ qua, nó sẽ giúp cho việc phân trang trở nên dễ dàng hơn và hiệu quả hơn khi truy vấn database. Nếu không có skip thì sẽ trả về tất cả các phần tử trong database, điều
+      .select('-password') // loại bỏ trường password khi trả về kết quả cho client, để đảm bảo an toàn thông tin của người dùng
+      .sort(sort as any); // sort là các điều kiện để sắp xếp kết quả trả về, nó sẽ được chuyển đổi từ query của client, ví dụ như sort=-timestamp sẽ được chuyển đổi thành các điều kiện để sắp xếp kết quả trả về, sau đó sẽ trả về kết quả cho client. Nếu không có sort thì sẽ trả về kết quả theo thứ tự mặc định của database
+
+    return { results, totalPages };
   }
 
   findOne(id: number) {
